@@ -1,0 +1,7 @@
+CREATE DATABASE auth_db;
+CREATE DATABASE route_db;
+CREATE DATABASE trip_db;
+CREATE DATABASE seat_db;
+CREATE DATABASE booking_db;
+CREATE DATABASE payment_db;
+CREATE DATABASE notification_db;
