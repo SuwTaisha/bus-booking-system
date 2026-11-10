@@ -1,6 +1,13 @@
 spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
   application:
     name: bus-route
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5433}/route_db
+    username: ${POSTGRES_USER:bus_admin}
+    password: ${POSTGRES_PASSWORD:tactical02}
 
 server:
   port: 8081
