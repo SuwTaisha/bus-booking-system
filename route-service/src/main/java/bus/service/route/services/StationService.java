@@ -20,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service class for stations, responsible for fetch, add, update, delete a station
- * Current features: Fetch all, add new, update
+ * Current features: Fetch all, add new, update, delete
  */
 @Service
 public class StationService {
