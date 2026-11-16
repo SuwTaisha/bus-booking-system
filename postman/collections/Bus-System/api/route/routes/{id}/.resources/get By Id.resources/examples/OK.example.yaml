@@ -1,0 +1,136 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/route/routes/:id"
+  method: GET
+  headers:
+    Accept: "*/*"
+  pathVariables:
+    id: "3090"
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: "*/*"
+  body:
+    type: text
+    content: |-
+      {
+        "message": "string",
+        "data": {
+          "id": 4814,
+          "line": "string",
+          "estimatedMinutes": 7497,
+          "distance": 1187.1654392222385,
+          "startStationId": 376,
+          "startStationName": "string",
+          "endStationId": 1383,
+          "endStationName": "string",
+          "isActive": false,
+          "inactiveReason": "string",
+          "stops": [
+            {
+              "id": 5579,
+              "restStopId": 2879,
+              "restStopName": "string",
+              "restStopAddress": "string",
+              "stopOrder": 3328,
+              "restMinutes": 5973
+            },
+            {
+              "id": 7584,
+              "restStopId": 9185,
+              "restStopName": "string",
+              "restStopAddress": "string",
+              "stopOrder": 428,
+              "restMinutes": 5924
+            }
+          ]
+        },
+        "success": false
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "line": {
+                "type": "string"
+              },
+              "estimatedMinutes": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "distance": {
+                "type": "number",
+                "format": "float"
+              },
+              "startStationId": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "startStationName": {
+                "type": "string"
+              },
+              "endStationId": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "endStationName": {
+                "type": "string"
+              },
+              "isActive": {
+                "type": "boolean"
+              },
+              "inactiveReason": {
+                "type": "string"
+              },
+              "stops": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "restStopId": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "restStopName": {
+                      "type": "string"
+                    },
+                    "restStopAddress": {
+                      "type": "string"
+                    },
+                    "stopOrder": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "restMinutes": {
+                      "type": "integer",
+                      "format": "int32"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "success": {
+            "type": "boolean"
+          }
+        }
+      }
+order: 1000

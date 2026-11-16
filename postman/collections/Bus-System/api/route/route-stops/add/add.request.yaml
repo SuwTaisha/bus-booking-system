@@ -1,0 +1,49 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/api/route/route-stops/add"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: "*/*"
+body:
+  type: json
+  content: |-
+    {
+      "restMinutes": 1650,
+      "restStopId": 6802,
+      "routeId": 3575,
+      "stopOrder": 2265
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {
+        "routeId": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "restStopId": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "stopOrder": {
+          "type": "integer",
+          "minimum": 1,
+          "format": "int32"
+        },
+        "restMinutes": {
+          "type": "integer",
+          "minimum": 0,
+          "format": "int32"
+        }
+      },
+      "required": [
+        "restMinutes",
+        "restStopId",
+        "routeId",
+        "stopOrder"
+      ]
+    }
+settings: {}
+examples: ./.resources/add.resources/examples
+order: 1000

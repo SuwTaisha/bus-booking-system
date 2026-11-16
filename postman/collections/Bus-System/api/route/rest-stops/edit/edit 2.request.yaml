@@ -1,0 +1,45 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/api/route/rest-stops/edit"
+method: PATCH
+headers:
+  Content-Type: application/json
+  Accept: "*/*"
+body:
+  type: json
+  content: |-
+    {
+      "id": 3892,
+      "name": "string",
+      "fullAddress": "string",
+      "isActive": false,
+      "inactiveReason": "string"
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "name": {
+          "type": "string"
+        },
+        "fullAddress": {
+          "type": "string"
+        },
+        "isActive": {
+          "type": "boolean"
+        },
+        "inactiveReason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id"
+      ]
+    }
+settings: {}
+examples: ./.resources/edit 2.resources/examples
+order: 1000

@@ -1,0 +1,59 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/api/route/stations/create"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: "*/*"
+body:
+  type: json
+  content: |-
+    {
+      "district": "string",
+      "fullAddress": "string",
+      "name": "string",
+      "province": "string",
+      "coordinate": "string",
+      "isActive": true,
+      "inactiveReason": "string"
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "province": {
+          "type": "string",
+          "minLength": 1
+        },
+        "district": {
+          "type": "string",
+          "minLength": 1
+        },
+        "coordinate": {
+          "type": "string"
+        },
+        "fullAddress": {
+          "type": "string",
+          "minLength": 1
+        },
+        "isActive": {
+          "type": "boolean"
+        },
+        "inactiveReason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "district",
+        "fullAddress",
+        "name",
+        "province"
+      ]
+    }
+settings: {}
+examples: ./.resources/add New Station.resources/examples
+order: 1000

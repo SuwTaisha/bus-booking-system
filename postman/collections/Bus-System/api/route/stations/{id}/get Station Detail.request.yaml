@@ -1,0 +1,16 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/api/route/stations/:id?id=9237"
+method: GET
+headers:
+  Accept: "*/*"
+queryParams:
+  id: "9237"
+pathVariables:
+  id: ""
+body:
+  type: text
+  content: ""
+settings: {}
+examples: ./.resources/get Station Detail.resources/examples
+order: 1000

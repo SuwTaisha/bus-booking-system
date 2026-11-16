@@ -1,0 +1,38 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/route/rest-stops/delete/:id"
+  method: DELETE
+  headers:
+    Accept: "*/*"
+  pathVariables:
+    id: "3090"
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: "*/*"
+  body:
+    type: text
+    content: |-
+      {
+        "message": "string",
+        "data": "",
+        "success": false
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "data": {},
+          "success": {
+            "type": "boolean"
+          }
+        }
+      }
+order: 1000

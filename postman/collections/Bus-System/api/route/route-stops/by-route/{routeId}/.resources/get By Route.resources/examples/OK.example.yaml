@@ -1,0 +1,84 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/route/route-stops/by-route/:routeId"
+  method: GET
+  headers:
+    Accept: "*/*"
+  pathVariables:
+    routeId: "3090"
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: "*/*"
+  body:
+    type: text
+    content: |-
+      {
+        "message": "string",
+        "data": [
+          {
+            "id": 2881,
+            "restStopId": 3043,
+            "restStopName": "string",
+            "restStopAddress": "string",
+            "stopOrder": 3421,
+            "restMinutes": 9484
+          },
+          {
+            "id": 8830,
+            "restStopId": 7005,
+            "restStopName": "string",
+            "restStopAddress": "string",
+            "stopOrder": 1527,
+            "restMinutes": 3858
+          }
+        ],
+        "success": true
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "restStopId": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "restStopName": {
+                  "type": "string"
+                },
+                "restStopAddress": {
+                  "type": "string"
+                },
+                "stopOrder": {
+                  "type": "integer",
+                  "format": "int32"
+                },
+                "restMinutes": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          },
+          "success": {
+            "type": "boolean"
+          }
+        }
+      }
+order: 1000

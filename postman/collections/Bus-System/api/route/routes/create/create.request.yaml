@@ -1,0 +1,61 @@
+$kind: http-request
+description: ""
+url: "{{baseUrl}}/api/route/routes/create"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: "*/*"
+body:
+  type: json
+  content: |-
+    {
+      "distance": 6779.0594061552265,
+      "endStationId": 538,
+      "estimatedMinutes": 1332,
+      "line": "string",
+      "startStationId": 4006,
+      "isActive": false,
+      "inactiveReason": "string"
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {
+        "line": {
+          "type": "string",
+          "minLength": 1
+        },
+        "estimatedMinutes": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "distance": {
+          "type": "number",
+          "format": "float"
+        },
+        "startStationId": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "endStationId": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "isActive": {
+          "type": "boolean"
+        },
+        "inactiveReason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "distance",
+        "endStationId",
+        "estimatedMinutes",
+        "line",
+        "startStationId"
+      ]
+    }
+settings: {}
+examples: ./.resources/create.resources/examples
+order: 1000

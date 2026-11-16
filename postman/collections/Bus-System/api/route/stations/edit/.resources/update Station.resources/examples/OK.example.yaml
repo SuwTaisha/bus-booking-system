@@ -1,0 +1,85 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/api/route/stations/edit"
+  method: PATCH
+  headers:
+    Content-Type: application/json
+    Accept: "*/*"
+  body:
+    type: json
+    content: |-
+      {
+        "id": 2387,
+        "name": "string",
+        "province": "string",
+        "district": "string",
+        "coordinate": "string",
+        "fullAddress": "string",
+        "isActive": false,
+        "inactiveReason": "string"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  headers:
+    Content-Type: "*/*"
+  body:
+    type: text
+    content: |-
+      {
+        "message": "string",
+        "data": {
+          "id": 7694,
+          "name": "string",
+          "province": "string",
+          "district": "string",
+          "coordinate": "string",
+          "fullAddress": "string",
+          "isActive": true,
+          "inactiveReason": "string"
+        },
+        "success": false
+      }
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer",
+                "format": "int64"
+              },
+              "name": {
+                "type": "string"
+              },
+              "province": {
+                "type": "string"
+              },
+              "district": {
+                "type": "string"
+              },
+              "coordinate": {
+                "type": "string"
+              },
+              "fullAddress": {
+                "type": "string"
+              },
+              "isActive": {
+                "type": "boolean"
+              },
+              "inactiveReason": {
+                "type": "string"
+              }
+            }
+          },
+          "success": {
+            "type": "boolean"
+          }
+        }
+      }
+order: 1000

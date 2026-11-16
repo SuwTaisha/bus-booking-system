@@ -1,0 +1,9 @@
+workspace:
+  id: ad45a39d-d01c-4202-8aef-4ba56a19ce52
+
+localResources:
+  specs:
+    - ../postman/specs/OpenAPI definition/index.json
+resourceNameMappings:
+  specs:
+    - ../postman/specs/OpenAPI definition/index.json: OpenAPI definition
