@@ -1,0 +1,8 @@
+package bus.trip.service.models;
+
+public enum TripStatus {
+    SCHEDULED,
+    IN_PROGRESS,
+    COMPLETED,
+    CANCELLED
+}
