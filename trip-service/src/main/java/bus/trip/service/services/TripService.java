@@ -1,9 +1,12 @@
 package bus.trip.service.services;
 
+import bus.trip.service.adapters.RouteClientAdapter;
+import bus.trip.service.clients.RouteClient;
 import bus.trip.service.dtos.requests.TripAddRequest;
 import bus.trip.service.dtos.requests.TripEditRequest;
 import bus.trip.service.dtos.requests.TripSearchRequest;
 import bus.trip.service.dtos.requests.TripStatusRequest;
+import bus.trip.service.dtos.responses.RouteInfoResponse;
 import bus.trip.service.dtos.responses.TripResponse;
 import bus.trip.service.exceptions.BadRequestException;
 import bus.trip.service.exceptions.ConflictException;
@@ -13,6 +16,7 @@ import bus.trip.service.models.TripStatus;
 import bus.trip.service.models.Vehicle;
 import bus.trip.service.repositories.TripRepo;
 import bus.trip.service.repositories.VehicleRepo;
+import org.apache.hc.client5.http.RouteInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -29,34 +33,46 @@ public class TripService {
     @Autowired
     private VehicleRepo vehicleRepo;
 
-    @Transactional(readOnly = true)
-    public Page<TripResponse> search(TripSearchRequest request) {
-        if (request.routeId() != null && request.status() != null) {
-            return tripRepo.findByRouteIdAndStatus(request.routeId(), request.status(), request.toPageable())
-                    .map(TripResponse::from);
-        }
-        if (request.routeId() != null) {
-            return tripRepo.findByRouteId(request.routeId(), request.toPageable()).map(TripResponse::from);
-        }
-        if (request.status() != null) {
-            return tripRepo.findByStatus(request.status(), request.toPageable()).map(TripResponse::from);
-        }
-        return tripRepo.findAll(request.toPageable()).map(TripResponse::from);
-    }
+    @Autowired
+    private RouteClientAdapter routeClientAdapter;
+
+//    @Transactional(readOnly = true)
+//    public Page<TripResponse> search(TripSearchRequest request) {
+//        if (request.routeId() != null && request.status() != null) {
+//            return tripRepo.findByRouteIdAndStatus(request.routeId(), request.status(), request.toPageable())
+//                    .map(TripResponse::from);
+//        }
+//        if (request.routeId() != null) {
+//            return tripRepo.findByRouteId(request.routeId(), request.toPageable()).map(TripResponse::from);
+//        }
+//        if (request.status() != null) {
+//            return tripRepo.findByStatus(request.status(), request.toPageable()).map(TripResponse::from);
+//        }
+//        return tripRepo.findAll(request.toPageable()).map(TripResponse::from);
+//    }
 
     @Transactional(readOnly = true)
     public TripResponse fetchById(Long id) {
-        return TripResponse.from(findOrThrow(id));
+        Trip trip = findOrThrow(id);
+        RouteInfoResponse route = routeClientAdapter.getRoute(trip.getRouteId());
+        return TripResponse.from(trip, route.startStationName(), route.endStationName());
     }
 
     @Transactional
     public TripResponse create(TripAddRequest request) {
-        if (!request.estimatedArrivalAt().isAfter(request.departureAt())) {
-            throw new BadRequestException("Estimated arrival must be after departure!");
-        }
         Vehicle vehicle = findVehicleOrThrow(request.vehicleId());
+        if (!vehicle.isActive()) {
+            throw new ConflictException("Vehicle is not active!");
+        }
 
-        if (tripRepo.hasVehicleOverlap(vehicle.getId(), request.departureAt(), request.estimatedArrivalAt())) {
+        RouteInfoResponse route = routeClientAdapter.getRoute(request.routeId());
+        if (!route.isActive()) {
+            throw new ConflictException("Route is not active!");
+        }
+
+        OffsetDateTime arrival = request.departureAt().plusMinutes(route.estimatedMinutes());
+
+        if (tripRepo.hasVehicleOverlap(vehicle.getId(), request.departureAt(), arrival)) {
             throw new ConflictException("Vehicle is already scheduled for another trip in this time window!");
         }
 
@@ -64,55 +80,56 @@ public class TripService {
         trip.setRouteId(request.routeId());
         trip.setVehicle(vehicle);
         trip.setDepartureAt(request.departureAt());
-        trip.setEstimatedArrivalAt(request.estimatedArrivalAt());
+        trip.setEstimatedArrivalAt(arrival);
         trip.setPrice(request.price());
         trip.setStatus(TripStatus.SCHEDULED);
-        return TripResponse.from(tripRepo.save(trip));
+
+        return TripResponse.from(tripRepo.save(trip), route.startStationName(), route.endStationName());
     }
 
-    @Transactional
-    public TripResponse update(TripEditRequest request) {
-        Trip trip = findOrThrow(request.id());
+//    @Transactional
+//    public TripResponse update(TripEditRequest request) {
+//        Trip trip = findOrThrow(request.id());
+//
+//        if (trip.getStatus() == TripStatus.COMPLETED || trip.getStatus() == TripStatus.CANCELLED) {
+//            throw new BadRequestException("Cannot edit a trip that is " + trip.getStatus());
+//        }
+//
+//        if (request.vehicleId() != null) {
+//            trip.setVehicle(findVehicleOrThrow(request.vehicleId()));
+//        }
+//        if (request.departureAt() != null) trip.setDepartureAt(request.departureAt());
+//        if (request.estimatedArrivalAt() != null) trip.setEstimatedArrivalAt(request.estimatedArrivalAt());
+//        if (request.price() != null) trip.setPrice(request.price());
+//
+//        if (!trip.getEstimatedArrivalAt().isAfter(trip.getDepartureAt())) {
+//            throw new BadRequestException("Estimated arrival must be after departure!");
+//        }
+//
+//        if (tripRepo.hasVehicleOverlapExcluding(
+//                trip.getVehicle().getId(), trip.getDepartureAt(), trip.getEstimatedArrivalAt(), trip.getId())) {
+//            throw new ConflictException("Vehicle is already scheduled for another trip in this time window!");
+//        }
+//
+//        return TripResponse.from(trip);
+//    }
 
-        if (trip.getStatus() == TripStatus.COMPLETED || trip.getStatus() == TripStatus.CANCELLED) {
-            throw new BadRequestException("Cannot edit a trip that is " + trip.getStatus());
-        }
-
-        if (request.vehicleId() != null) {
-            trip.setVehicle(findVehicleOrThrow(request.vehicleId()));
-        }
-        if (request.departureAt() != null) trip.setDepartureAt(request.departureAt());
-        if (request.estimatedArrivalAt() != null) trip.setEstimatedArrivalAt(request.estimatedArrivalAt());
-        if (request.price() != null) trip.setPrice(request.price());
-
-        if (!trip.getEstimatedArrivalAt().isAfter(trip.getDepartureAt())) {
-            throw new BadRequestException("Estimated arrival must be after departure!");
-        }
-
-        if (tripRepo.hasVehicleOverlapExcluding(
-                trip.getVehicle().getId(), trip.getDepartureAt(), trip.getEstimatedArrivalAt(), trip.getId())) {
-            throw new ConflictException("Vehicle is already scheduled for another trip in this time window!");
-        }
-
-        return TripResponse.from(trip);
-    }
-
-    @Transactional
-    public TripResponse updateStatus(TripStatusRequest request) {
-        Trip trip = findOrThrow(request.id());
-        TripStatus next = request.status();
-
-        validateTransition(trip.getStatus(), next);
-
-        trip.setStatus(next);
-        if (next == TripStatus.CANCELLED) {
-            trip.setCancelReason(request.cancelReason());
-        }
-        if (next == TripStatus.COMPLETED) {
-            trip.setArrivedAt(OffsetDateTime.now());
-        }
-        return TripResponse.from(trip);
-    }
+//    @Transactional
+//    public TripResponse updateStatus(TripStatusRequest request) {
+//        Trip trip = findOrThrow(request.id());
+//        TripStatus next = request.status();
+//
+//        validateTransition(trip.getStatus(), next);
+//
+//        trip.setStatus(next);
+//        if (next == TripStatus.CANCELLED) {
+//            trip.setCancelReason(request.cancelReason());
+//        }
+//        if (next == TripStatus.COMPLETED) {
+//            trip.setArrivedAt(OffsetDateTime.now());
+//        }
+//        return TripResponse.from(trip);
+//    }
 
     @Transactional
     public void delete(Long id) {

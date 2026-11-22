@@ -9,6 +9,19 @@ spring:
     username: ${POSTGRES_USER:bus_admin}
     password: ${POSTGRES_PASSWORD:tactical02}
 
+
+  cloud:
+    openfeign:
+      client:
+        config:
+          default:
+            loggerLevel: full
+            connectTimeout: 2000
+            readTimeout: 3000
+logging:
+  level:
+    bus.trip.service.clients: DEBUG
+
 server:
   port: 8082
 

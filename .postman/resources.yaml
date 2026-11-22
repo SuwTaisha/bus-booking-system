@@ -4,6 +4,8 @@ workspace:
 localResources:
   specs:
     - ../postman/specs/OpenAPI definition/index.json
+    - ../postman/specs/OpenAPI definition-1/index.json
 resourceNameMappings:
   specs:
     - ../postman/specs/OpenAPI definition/index.json: OpenAPI definition
+    - ../postman/specs/OpenAPI definition-1/index.json: OpenAPI definition

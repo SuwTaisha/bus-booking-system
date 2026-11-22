@@ -16,9 +16,9 @@ public record TripResponse(
         OffsetDateTime arrivedAt,
         long price,
         TripStatus status,
-        String cancelReason) {
+        String cancelReason, String startStation, String endStation) {
 
-    public static TripResponse from(Trip t) {
+    public static TripResponse from(Trip t, String startStation, String endStation) {
         return new TripResponse(
                 t.getId(),
                 t.getRouteId(),
@@ -30,6 +30,6 @@ public record TripResponse(
                 t.getArrivedAt(),
                 t.getPrice(),
                 t.getStatus(),
-                t.getCancelReason());
+                t.getCancelReason(), startStation, endStation);
     }
 }
