@@ -35,7 +35,6 @@ public class TripService {
 
     @Autowired
     private RouteClientAdapter routeClientAdapter;
-
 //    @Transactional(readOnly = true)
 //    public Page<TripResponse> search(TripSearchRequest request) {
 //        if (request.routeId() != null && request.status() != null) {
@@ -65,10 +64,7 @@ public class TripService {
             throw new ConflictException("Vehicle is not active!");
         }
 
-        RouteInfoResponse route = routeClientAdapter.getRoute(request.routeId());
-        if (!route.isActive()) {
-            throw new ConflictException("Route is not active!");
-        }
+        RouteInfoResponse route = findAndCheckIsActiveRoute(request.routeId());
 
         OffsetDateTime arrival = request.departureAt().plusMinutes(route.estimatedMinutes());
 
@@ -87,49 +83,68 @@ public class TripService {
         return TripResponse.from(tripRepo.save(trip), route.startStationName(), route.endStationName());
     }
 
-//    @Transactional
-//    public TripResponse update(TripEditRequest request) {
-//        Trip trip = findOrThrow(request.id());
-//
-//        if (trip.getStatus() == TripStatus.COMPLETED || trip.getStatus() == TripStatus.CANCELLED) {
-//            throw new BadRequestException("Cannot edit a trip that is " + trip.getStatus());
-//        }
-//
-//        if (request.vehicleId() != null) {
-//            trip.setVehicle(findVehicleOrThrow(request.vehicleId()));
-//        }
-//        if (request.departureAt() != null) trip.setDepartureAt(request.departureAt());
-//        if (request.estimatedArrivalAt() != null) trip.setEstimatedArrivalAt(request.estimatedArrivalAt());
-//        if (request.price() != null) trip.setPrice(request.price());
-//
-//        if (!trip.getEstimatedArrivalAt().isAfter(trip.getDepartureAt())) {
-//            throw new BadRequestException("Estimated arrival must be after departure!");
-//        }
-//
-//        if (tripRepo.hasVehicleOverlapExcluding(
-//                trip.getVehicle().getId(), trip.getDepartureAt(), trip.getEstimatedArrivalAt(), trip.getId())) {
-//            throw new ConflictException("Vehicle is already scheduled for another trip in this time window!");
-//        }
-//
-//        return TripResponse.from(trip);
-//    }
+    @Transactional
+    public TripResponse update(Long id, TripEditRequest request) {
+        Trip trip = findOrThrow(id);
 
-//    @Transactional
-//    public TripResponse updateStatus(TripStatusRequest request) {
-//        Trip trip = findOrThrow(request.id());
-//        TripStatus next = request.status();
-//
-//        validateTransition(trip.getStatus(), next);
-//
-//        trip.setStatus(next);
-//        if (next == TripStatus.CANCELLED) {
-//            trip.setCancelReason(request.cancelReason());
-//        }
-//        if (next == TripStatus.COMPLETED) {
-//            trip.setArrivedAt(OffsetDateTime.now());
-//        }
-//        return TripResponse.from(trip);
-//    }
+        if (trip.getStatus() != TripStatus.SCHEDULED) {
+            throw new ConflictException("Cannot edit a trip that is " + trip.getStatus());
+        }
+
+        if (request.vehicleId() != null) {
+            Vehicle vehicle = findVehicleOrThrow(request.vehicleId());
+            if (!vehicle.isActive()) {
+                throw new ConflictException("Vehicle is not active!");
+            }
+            trip.setVehicle(vehicle);
+        }
+        if (request.departureAt() != null) {
+            if (!request.departureAt().isAfter(OffsetDateTime.now())) {
+                throw new BadRequestException("Departure must be in the future!");
+            }
+            trip.setDepartureAt(request.departureAt());
+        }
+        if (request.price() != null) {
+            trip.setPrice(request.price());
+        }
+
+        Long routeId = request.routeId() != null ? request.routeId() : trip.getRouteId();
+        RouteInfoResponse route = routeClientAdapter.getRoute(routeId);
+        if (request.routeId() != null) {
+            if (!route.isActive()) {
+                throw new ConflictException("Route is not active!");
+            }
+            trip.setRouteId(routeId);
+        }
+
+        trip.setEstimatedArrivalAt(trip.getDepartureAt().plusMinutes(route.estimatedMinutes()));
+
+        if (tripRepo.hasVehicleOverlapExcluding(
+                trip.getVehicle().getId(), trip.getDepartureAt(), trip.getEstimatedArrivalAt(), trip.getId())) {
+            throw new ConflictException("Vehicle is already scheduled for another trip in this time window!");
+        }
+
+        Trip updated = tripRepo.save(trip);
+        return TripResponse.from(updated, route.startStationName(), route.endStationName());
+    }
+
+    @Transactional
+    public TripResponse updateStatus(TripStatusRequest request) {
+        Trip trip = findOrThrow(request.id());
+        TripStatus next = request.status();
+
+        validateTransition(trip.getStatus(), next);
+
+        trip.setStatus(next);
+        if (next == TripStatus.CANCELLED) {
+            trip.setCancelReason(request.cancelReason());
+        }
+        if (next == TripStatus.COMPLETED) {
+            trip.setArrivedAt(OffsetDateTime.now());
+        }
+        RouteInfoResponse route = routeClientAdapter.getRoute(trip.getRouteId());
+        return TripResponse.from(trip, route.startStationName(), route.endStationName());
+    }
 
     @Transactional
     public void delete(Long id) {
@@ -140,13 +155,13 @@ public class TripService {
 
     /**
      * Allowed transitions:
-     *   SCHEDULED   -> IN_PROGRESS | CANCELLED
-     *   IN_PROGRESS -> COMPLETED   | CANCELLED
+     * SCHEDULED   -> IN_PROGRESS | CANCELLED
+     * IN_PROGRESS -> COMPLETED   | CANCELLED
      */
     private void validateTransition(TripStatus current, TripStatus next) {
         boolean allowed = switch (current) {
-            case SCHEDULED   -> next == TripStatus.IN_PROGRESS || next == TripStatus.CANCELLED;
-            case IN_PROGRESS -> next == TripStatus.COMPLETED   || next == TripStatus.CANCELLED;
+            case SCHEDULED -> next == TripStatus.IN_PROGRESS || next == TripStatus.CANCELLED;
+            case IN_PROGRESS -> next == TripStatus.COMPLETED || next == TripStatus.CANCELLED;
             case COMPLETED, CANCELLED -> false;
         };
         if (!allowed) {
@@ -162,5 +177,13 @@ public class TripService {
     private Vehicle findVehicleOrThrow(Long id) {
         return vehicleRepo.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Vehicle not found: " + id));
+    }
+
+    private RouteInfoResponse findAndCheckIsActiveRoute(Long routeId) {
+        RouteInfoResponse route = routeClientAdapter.getRoute(routeId);
+        if (!route.isActive()) {
+            throw new ConflictException("Route is not active!");
+        }
+        return route;
     }
 }

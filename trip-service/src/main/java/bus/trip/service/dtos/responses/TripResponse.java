@@ -32,4 +32,10 @@ public record TripResponse(
                 t.getStatus(),
                 t.getCancelReason(), startStation, endStation);
     }
+
+    public TripResponse withStations(String start, String end) {
+        return new TripResponse(id, routeId, vehicleId, licensePlate, vehicleTypeName,
+                departureAt, estimatedArrivalAt, arrivedAt, price, status,
+                cancelReason, start, end);
+    }
 }

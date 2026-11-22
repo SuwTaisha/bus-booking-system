@@ -9,6 +9,6 @@ public record TripEditRequest(
         @NotNull(message = "No ID provided!") Long id,
         Long vehicleId,
         OffsetDateTime departureAt,
-        OffsetDateTime estimatedArrivalAt,
-        @PositiveOrZero(message = "Price cannot be negative!") Long price) {
+        @PositiveOrZero(message = "Price cannot be negative!") Long price,
+        Long routeId) {
 }
