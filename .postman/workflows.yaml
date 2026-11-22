@@ -15,6 +15,16 @@ workflows:
       options:
         syncExamples: false
         deleteOrphanedRequests: false
+    - spec: ../postman/specs/OpenAPI definition-2/index.json
+      collection: ../postman/collections/OpenAPI definition
+      options:
+        syncExamples: false
+        deleteOrphanedRequests: false
+    - spec: ../postman/specs/OpenAPI definition-3/index.json
+      collection: ../postman/collections/OpenAPI definition
+      options:
+        syncExamples: false
+        deleteOrphanedRequests: false
   syncCollectionToSpec:
     - spec: ../postman/specs/OpenAPI definition/index.json
       collection: ../postman/collections/OpenAPI definition
@@ -22,6 +32,16 @@ workflows:
         syncExamples: false
         deleteOrphanedRequests: false
     - spec: ../postman/specs/OpenAPI definition-1/index.json
+      collection: ../postman/collections/OpenAPI definition
+      options:
+        syncExamples: false
+        deleteOrphanedRequests: false
+    - spec: ../postman/specs/OpenAPI definition-2/index.json
+      collection: ../postman/collections/OpenAPI definition
+      options:
+        syncExamples: false
+        deleteOrphanedRequests: false
+    - spec: ../postman/specs/OpenAPI definition-3/index.json
       collection: ../postman/collections/OpenAPI definition
       options:
         syncExamples: false

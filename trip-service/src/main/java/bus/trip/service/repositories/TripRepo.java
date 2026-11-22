@@ -4,19 +4,26 @@ import bus.trip.service.models.Trip;
 import bus.trip.service.models.TripStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.OffsetDateTime;
 
-public interface TripRepo extends JpaRepository<Trip, Long> {
+public interface TripRepo extends JpaRepository<Trip, Long>, JpaSpecificationExecutor<Trip> {
 
     Page<Trip> findByRouteId(Long routeId, Pageable pageable);
 
     Page<Trip> findByStatus(TripStatus status, Pageable pageable);
 
     Page<Trip> findByRouteIdAndStatus(Long routeId, TripStatus status, Pageable pageable);
+
+    @Override
+    @EntityGraph(attributePaths = {"vehicle", "vehicle.vehicleType"})
+    Page<Trip> findAll(Specification<Trip> spec, Pageable pageable);
 
     /**
      * Check vehicle schedule overlap for create.

@@ -5,7 +5,16 @@ localResources:
   specs:
     - ../postman/specs/OpenAPI definition/index.json
     - ../postman/specs/OpenAPI definition-1/index.json
+    - ../postman/specs/OpenAPI definition-2/index.json
+    - ../postman/specs/OpenAPI definition-3/index.json
 resourceNameMappings:
   specs:
     - ../postman/specs/OpenAPI definition/index.json: OpenAPI definition
     - ../postman/specs/OpenAPI definition-1/index.json: OpenAPI definition
+    - ../postman/specs/OpenAPI definition-2/index.json: OpenAPI definition
+    - ../postman/specs/OpenAPI definition-3/index.json: OpenAPI definition
+
+# Each entry here maps a local resource to one or more corresponding objects in Postman Cloud
+
+cloudResources:
+  collections: {}

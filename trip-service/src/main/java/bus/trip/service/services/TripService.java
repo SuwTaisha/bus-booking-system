@@ -15,14 +15,19 @@ import bus.trip.service.models.Trip;
 import bus.trip.service.models.TripStatus;
 import bus.trip.service.models.Vehicle;
 import bus.trip.service.repositories.TripRepo;
+import bus.trip.service.repositories.TripSpecs;
 import bus.trip.service.repositories.VehicleRepo;
 import org.apache.hc.client5.http.RouteInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class TripService {
@@ -35,26 +40,44 @@ public class TripService {
 
     @Autowired
     private RouteClientAdapter routeClientAdapter;
-//    @Transactional(readOnly = true)
-//    public Page<TripResponse> search(TripSearchRequest request) {
-//        if (request.routeId() != null && request.status() != null) {
-//            return tripRepo.findByRouteIdAndStatus(request.routeId(), request.status(), request.toPageable())
-//                    .map(TripResponse::from);
-//        }
-//        if (request.routeId() != null) {
-//            return tripRepo.findByRouteId(request.routeId(), request.toPageable()).map(TripResponse::from);
-//        }
-//        if (request.status() != null) {
-//            return tripRepo.findByStatus(request.status(), request.toPageable()).map(TripResponse::from);
-//        }
-//        return tripRepo.findAll(request.toPageable()).map(TripResponse::from);
-//    }
+
+    private static final ZoneId VN = ZoneId.of("Asia/Ho_Chi_Minh");
+
+    @Transactional(readOnly = true)
+    public Page<TripResponse> search(TripSearchRequest request) {
+        if (request.minPrice() != null && request.maxPrice() != null
+                && request.minPrice() > request.maxPrice()) {
+            throw new BadRequestException("minPrice must not exceed maxPrice!");
+        }
+
+        List<Specification<Trip>> specs = new ArrayList<>();
+
+        if (request.routeId() != null) {
+            specs.add(TripSpecs.hasRoute(request.routeId()));
+        }
+        if (request.date() != null) {
+            OffsetDateTime start = request.date().atStartOfDay(VN).toOffsetDateTime();
+            OffsetDateTime end = request.date().plusDays(1).atStartOfDay(VN).toOffsetDateTime();
+            specs.add(TripSpecs.departsBetween(start, end));
+        }
+        if (request.status() != null) {
+            specs.add(TripSpecs.hasStatus(request.status()));
+        } else {
+            specs.add(TripSpecs.hasStatus(TripStatus.SCHEDULED));
+            specs.add(TripSpecs.departsAfter(OffsetDateTime.now()));
+        }
+        if (request.minPrice() != null) specs.add(TripSpecs.priceAtLeast(request.minPrice()));
+        if (request.maxPrice() != null) specs.add(TripSpecs.priceAtMost(request.maxPrice()));
+
+        return tripRepo.findAll(Specification.allOf(specs), request.toPageable())
+                .map(TripResponse::from);
+    }
 
     @Transactional(readOnly = true)
     public TripResponse fetchById(Long id) {
         Trip trip = findOrThrow(id);
         RouteInfoResponse route = routeClientAdapter.getRoute(trip.getRouteId());
-        return TripResponse.from(trip, route.startStationName(), route.endStationName());
+        return TripResponse.from(trip).withStations(route.startStationName(), route.endStationName());
     }
 
     @Transactional
@@ -80,7 +103,8 @@ public class TripService {
         trip.setPrice(request.price());
         trip.setStatus(TripStatus.SCHEDULED);
 
-        return TripResponse.from(tripRepo.save(trip), route.startStationName(), route.endStationName());
+        return TripResponse.from(tripRepo.save(trip)).withStations(route.startStationName(), route.endStationName());
+
     }
 
     @Transactional
@@ -125,7 +149,7 @@ public class TripService {
         }
 
         Trip updated = tripRepo.save(trip);
-        return TripResponse.from(updated, route.startStationName(), route.endStationName());
+        return TripResponse.from(updated).withStations(route.startStationName(), route.endStationName());
     }
 
     @Transactional
@@ -143,7 +167,7 @@ public class TripService {
             trip.setArrivedAt(OffsetDateTime.now());
         }
         RouteInfoResponse route = routeClientAdapter.getRoute(trip.getRouteId());
-        return TripResponse.from(trip, route.startStationName(), route.endStationName());
+        return TripResponse.from(trip).withStations(route.startStationName(), route.endStationName());
     }
 
     @Transactional
