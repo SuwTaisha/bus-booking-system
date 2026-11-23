@@ -3,11 +3,16 @@ package bus.trip.service.services;
 import bus.trip.service.dtos.requests.SeatLayoutAddRequest;
 import bus.trip.service.dtos.requests.SeatLayoutEditRequest;
 import bus.trip.service.dtos.responses.SeatLayoutResponse;
+import bus.trip.service.dtos.responses.TripSeatMapResponse;
 import bus.trip.service.exceptions.ConflictException;
 import bus.trip.service.exceptions.ResourceNotFoundException;
 import bus.trip.service.models.SeatLayout;
+import bus.trip.service.models.Trip;
+import bus.trip.service.models.Vehicle;
 import bus.trip.service.models.VehicleType;
 import bus.trip.service.repositories.SeatLayoutRepo;
+import bus.trip.service.repositories.TripRepo;
+import bus.trip.service.repositories.VehicleRepo;
 import bus.trip.service.repositories.VehicleTypeRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,7 +28,26 @@ public class SeatLayoutService {
     private SeatLayoutRepo seatLayoutRepo;
 
     @Autowired
+    private VehicleRepo vehicleRepo;
+
+    @Autowired
     private VehicleTypeRepo vehicleTypeRepo;
+
+    @Autowired
+    private TripRepo tripRepo;
+
+    @Transactional(readOnly = true)
+    public TripSeatMapResponse fetchByTrip(Long tripId) {
+        Trip trip = tripRepo.findById(tripId).orElseThrow(() -> new ResourceNotFoundException("Cannot find trip with this Id"));
+        VehicleType vehicleType = trip.getVehicle().getVehicleType();
+        List<SeatLayoutResponse> seatLayout = seatLayoutRepo
+                .findByVehicleTypeIdOrderByDeckNoAscRowNoAscColNoAsc(vehicleType.getId())
+                .stream().map(SeatLayoutResponse::from).toList();
+
+        TripSeatMapResponse response = TripSeatMapResponse.from(trip, seatLayout);
+        return response;
+    }
+
 
     @Transactional(readOnly = true)
     public List<SeatLayoutResponse> fetchByVehicleType(Long vehicleTypeId) {
@@ -64,8 +88,8 @@ public class SeatLayoutService {
             seat.setSeatCode(code);
         }
         if (request.deckNo() != null) seat.setDeckNo(request.deckNo());
-        if (request.rowNo()  != null) seat.setRowNo(request.rowNo());
-        if (request.colNo()  != null) seat.setColNo(request.colNo());
+        if (request.rowNo() != null) seat.setRowNo(request.rowNo());
+        if (request.colNo() != null) seat.setColNo(request.colNo());
         return SeatLayoutResponse.from(seat);
     }
 

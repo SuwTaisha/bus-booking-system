@@ -4,6 +4,7 @@ import bus.trip.service.dtos.ApiResponse;
 import bus.trip.service.dtos.requests.SeatLayoutAddRequest;
 import bus.trip.service.dtos.requests.SeatLayoutEditRequest;
 import bus.trip.service.dtos.responses.SeatLayoutResponse;
+import bus.trip.service.dtos.responses.TripSeatMapResponse;
 import bus.trip.service.services.SeatLayoutService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,13 @@ public class SeatLayoutController {
 
     @Autowired
     private SeatLayoutService seatLayoutService;
+
+
+    @GetMapping("/{tripId}/seats")
+    public ResponseEntity<ApiResponse<TripSeatMapResponse>> getSeatsByTripId(@PathVariable Long tripId) {
+        TripSeatMapResponse seats = seatLayoutService.fetchByTrip(tripId);
+        return ResponseEntity.ok(ApiResponse.success("Fetched Trip Vehicle Seats", seats));
+    }
 
     @GetMapping("/by-vehicle-type/{vehicleTypeId}")
     public ResponseEntity<ApiResponse<List<SeatLayoutResponse>>> getByVehicleType(@PathVariable Long vehicleTypeId) {

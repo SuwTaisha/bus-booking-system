@@ -1,15 +1,14 @@
 package bus.trip.service.controllers;
 
 import bus.trip.service.dtos.ApiResponse;
-import bus.trip.service.dtos.requests.TripAddRequest;
-import bus.trip.service.dtos.requests.TripEditRequest;
-import bus.trip.service.dtos.requests.TripSearchRequest;
-import bus.trip.service.dtos.requests.TripStatusRequest;
+import bus.trip.service.dtos.requests.*;
 import bus.trip.service.dtos.responses.TripResponse;
 import bus.trip.service.services.TripService;
 import jakarta.validation.Valid;
+import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +18,12 @@ public class TripController {
 
     @Autowired
     private TripService tripService;
+
+    @GetMapping("/all")
+    public ResponseEntity<ApiResponse<Page<TripResponse>>> getAllTrip(@Valid BasePageRequest request) {
+        Page<TripResponse> resposne = tripService.getAll(request);
+        return ResponseEntity.ok(ApiResponse.success("Featched Trips", resposne));
+    }
 
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<Page<TripResponse>>> search(@Valid TripSearchRequest request) {
@@ -40,9 +45,9 @@ public class TripController {
         return ResponseEntity.ok(ApiResponse.success("Updated trip", tripService.update(request.routeId(), request)));
     }
 
-    @PatchMapping("/status")
-    public ResponseEntity<ApiResponse<TripResponse>> updateStatus(@Valid @RequestBody TripStatusRequest request) {
-        return ResponseEntity.ok(ApiResponse.success("Status updated", tripService.updateStatus(request)));
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<ApiResponse<TripResponse>> updateStatus(@PathVariable Long id, @Valid @RequestBody TripStatusRequest request) {
+        return ResponseEntity.ok(ApiResponse.success("Status updated", tripService.updateStatus(id, request)));
     }
 
     @DeleteMapping("/delete/{id}")

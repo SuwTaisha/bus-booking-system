@@ -2,10 +2,7 @@ package bus.trip.service.services;
 
 import bus.trip.service.adapters.RouteClientAdapter;
 import bus.trip.service.clients.RouteClient;
-import bus.trip.service.dtos.requests.TripAddRequest;
-import bus.trip.service.dtos.requests.TripEditRequest;
-import bus.trip.service.dtos.requests.TripSearchRequest;
-import bus.trip.service.dtos.requests.TripStatusRequest;
+import bus.trip.service.dtos.requests.*;
 import bus.trip.service.dtos.responses.RouteInfoResponse;
 import bus.trip.service.dtos.responses.TripResponse;
 import bus.trip.service.exceptions.BadRequestException;
@@ -20,9 +17,13 @@ import bus.trip.service.repositories.VehicleRepo;
 import org.apache.hc.client5.http.RouteInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
@@ -42,6 +43,18 @@ public class TripService {
     private RouteClientAdapter routeClientAdapter;
 
     private static final ZoneId VN = ZoneId.of("Asia/Ho_Chi_Minh");
+
+    @Transactional(readOnly = true)
+    public Page<TripResponse> getAll(BasePageRequest request) {
+        Pageable pageable = PageRequest.of(request.page(), request.size());
+        Page<Trip> page = tripRepo.findAll(pageable);
+        List<TripResponse> content = page.getContent().stream()
+                .map(TripResponse::from)
+                .toList();
+
+        Page<TripResponse> response = new PageImpl<>(content, pageable, page.getTotalElements());
+        return response;
+    }
 
     @Transactional(readOnly = true)
     public Page<TripResponse> search(TripSearchRequest request) {
@@ -153,21 +166,24 @@ public class TripService {
     }
 
     @Transactional
-    public TripResponse updateStatus(TripStatusRequest request) {
-        Trip trip = findOrThrow(request.id());
+    public TripResponse updateStatus(Long id, TripStatusRequest request) {
+        Trip trip = findOrThrow(id);
         TripStatus next = request.status();
 
         validateTransition(trip.getStatus(), next);
 
-        trip.setStatus(next);
         if (next == TripStatus.CANCELLED) {
-            trip.setCancelReason(request.cancelReason());
+            if (!StringUtils.hasText(request.cancelReason())) {
+                throw new BadRequestException("Please provide a cancel reason!");
+            }
+            trip.setCancelReason(request.cancelReason().trim());
         }
         if (next == TripStatus.COMPLETED) {
             trip.setArrivedAt(OffsetDateTime.now());
         }
-        RouteInfoResponse route = routeClientAdapter.getRoute(trip.getRouteId());
-        return TripResponse.from(trip).withStations(route.startStationName(), route.endStationName());
+
+        trip.setStatus(next);
+        return TripResponse.from(trip);
     }
 
     @Transactional
