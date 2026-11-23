@@ -3,14 +3,20 @@ package bus.service.route.repositories;
 import bus.service.route.models.Route;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
+import java.util.Collection;
+import java.util.List;
 
 public interface RouteRepo extends JpaRepository<Route, Long> {
 
     Page<Route> findByActiveTrue(Pageable pageable);
 
+    @EntityGraph(attributePaths = {"startStation", "endStation"})
+    List<Route> findByIdIn(Collection<Long> ids);
     /** Check for active route uniqueness: (startStation, endStation, line) */
     boolean existsByStartStationIdAndEndStationIdAndLineAndActiveTrue(
             Long startStationId, Long endStationId, String line);

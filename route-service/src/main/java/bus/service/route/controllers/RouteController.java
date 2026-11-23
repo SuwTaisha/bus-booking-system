@@ -6,6 +6,7 @@ import bus.service.route.dtos.requests.RouteAddRequest;
 import bus.service.route.dtos.requests.RouteEditRequest;
 import bus.service.route.dtos.responses.RouteDetailResponse;
 import bus.service.route.dtos.responses.RouteResponse;
+import bus.service.route.exceptions.BadRequestException;
 import bus.service.route.services.RouteService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,12 +14,23 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/route/routes")
 public class RouteController {
 
     @Autowired
     private RouteService routeService;
+
+    @GetMapping("/batch")
+    public ResponseEntity<ApiResponse<List<RouteResponse>>> getBatch(@RequestParam List<Long> ids) {
+        if(ids.size() > 50) {
+            throw new BadRequestException("Can recieve only 50 ids");
+        }
+        List<RouteResponse> result = routeService.fetchByBatch(ids);
+        return ResponseEntity.ok(ApiResponse.success("Fetched complete for provided IDS", result));
+    }
 
     @GetMapping("/all")
     public ResponseEntity<ApiResponse<Page<RouteResponse>>> getAll(@Valid BasePageRequest request) {

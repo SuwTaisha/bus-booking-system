@@ -19,6 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.List;
+
 /**
  * Service for routes: fetch, create, update, delete.
  * Enforces the unique active (startStation, endStation, line) constraint at application level
@@ -32,6 +34,13 @@ public class RouteService {
 
     @Autowired
     private StationRepo stationRepo;
+
+
+    @Transactional(readOnly = true)
+    public List<RouteResponse> fetchByBatch(List<Long> id) {
+        List<RouteResponse> response = routeRepo.findByIdIn(id).stream().map(RouteResponse::from).toList();
+        return response;
+    }
 
     @Transactional(readOnly = true)
     public Page<RouteResponse> fetchAll(BasePageRequest request) {
@@ -52,7 +61,7 @@ public class RouteService {
         }
 
         Station start = findStationOrThrow(request.startStationId());
-        Station end   = findStationOrThrow(request.endStationId());
+        Station end = findStationOrThrow(request.endStationId());
 
         boolean duplicate = routeRepo.existsByStartStationIdAndEndStationIdAndLineAndActiveTrue(
                 start.getId(), end.getId(), request.line().trim());
