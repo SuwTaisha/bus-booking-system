@@ -205,7 +205,7 @@ public class TripService {
             case COMPLETED, CANCELLED -> false;
         };
         if (!allowed) {
-            throw new BadRequestException("Cannot transition from " + current + " to " + next);
+            throw new ConflictException("Cannot transition from " + current + " to " + next);
         }
     }
 
