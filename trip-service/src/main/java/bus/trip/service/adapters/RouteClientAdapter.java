@@ -6,6 +6,7 @@ import bus.trip.service.dtos.responses.RouteInfoResponse;
 import bus.trip.service.exceptions.ResourceNotFoundException;
 import bus.trip.service.exceptions.ServiceUnavailableException;
 import feign.FeignException;
+import feign.codec.DecodeException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -24,11 +25,16 @@ public class RouteClientAdapter {
 
     public RouteInfoResponse getRoute(Long routeId) {
         try {
-            return routeClient.getRoute(routeId).getData();
-        } catch (FeignException.NotFound e) {
-            throw new ResourceNotFoundException("Route not found: " + routeId);
-        } catch (FeignException e) {
-            log.warn("Route service call failed", e);
+            try {
+                return routeClient.getRoute(routeId).getData();
+            } catch (FeignException.NotFound e) {
+                throw new ResourceNotFoundException("Route not found: " + routeId);
+            } catch (FeignException e) {
+                log.warn("Route service call failed", e);
+                throw new ServiceUnavailableException("Route service is currently unavailable");
+            }
+        } catch (DecodeException e) {
+            log.warn("Route service call failed, decode exception", e);
             throw new ServiceUnavailableException("Route service is currently unavailable");
         }
     }
