@@ -6,7 +6,6 @@ import jakarta.validation.constraints.NotNull;
 import java.time.OffsetDateTime;
 
 public record TripStatusRequest(
-        @NotNull(message = "No ID provided!") Long id,
         @NotNull(message = "Status is required!") TripStatus status,
         String cancelReason) {
 }

@@ -60,7 +60,7 @@ class TripStatusTest {
         Trip trip = newTrip(from);
         when(tripRepo.findById(1L)).thenReturn(Optional.of(trip));
 
-        tripService.updateStatus(1L, new TripStatusRequest(1L,to, null));
+        tripService.updateStatus(1L, new TripStatusRequest(to, null));
 
         assertEquals(to, trip.getStatus());
     }
@@ -75,7 +75,7 @@ class TripStatusTest {
         when(tripRepo.findById(1L)).thenReturn(Optional.of(trip));
 
         assertThrows(ConflictException.class,
-                () -> tripService.updateStatus(1L, new TripStatusRequest(1L,to, "any reason")));
+                () -> tripService.updateStatus(1L, new TripStatusRequest(to, "any reason")));
 
         assertEquals(from, trip.getStatus());
     }
