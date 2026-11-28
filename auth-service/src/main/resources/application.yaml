@@ -9,6 +9,9 @@ spring:
     username: ${POSTGRES_USER:bus_admin}
     password: ${POSTGRES_PASSWORD:tactical02}
 
+app:
+  jwt:
+    secret: ${JWT_SECRET}
 
   cloud:
     openfeign:

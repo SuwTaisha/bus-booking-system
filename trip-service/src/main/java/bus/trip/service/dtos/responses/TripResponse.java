@@ -22,7 +22,7 @@ public record TripResponse(
         String endStation
 ) {
 
-    // Constructor không có station
+
     public TripResponse(
             Long id,
             Long routeId,
